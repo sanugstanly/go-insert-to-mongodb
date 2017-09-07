@@ -1,18 +1,25 @@
 package routes
 
 import(
-  "controller"
   "github.com/gorilla/mux"
+  "net/http"
+  "logger"
 )
 
-var AppRoutes = mux.NewRouter()
+func RenderRoutes() *mux.Router {
+  router := mux.NewRouter().StrictSlash(true)
+   for _, route := range routes {
+       var handler http.Handler
 
-type Route struct {
-    Url        string `json:"url"`
-    Function   string `json:"function"`
-}
+       handler = route.HandlerFunc
+       handler = logger.Logger(handler, route.Name)
 
-func RenderRoutes()  {
-  AppRoutes.HandleFunc("/", controller.PrintHelloWorld)
-  AppRoutes.HandleFunc("/hi/{name}", controller.SayHi)
+       router.
+           Methods(route.Method).
+           Path(route.Pattern).
+           Name(route.Name).
+           Handler(handler)
+   }
+
+   return router
 }
